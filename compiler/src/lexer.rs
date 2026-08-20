@@ -10,6 +10,7 @@ enum TokenType {
     Else,
     While,
     Do,
+    For,
     Switch,
     DefaultCase,
     OpenBracket,
@@ -73,6 +74,31 @@ impl Lexer {
             } else {
                 break;
             }
+        }
+    }
+    
+    //fn scan_token(&smut elf) -> Option<TokenType> {  
+    //}
+
+    fn keyword_oe_identifier(id: String) -> TokenType {
+        match id.as_str() {
+            "return" => TokenType::Return,
+            "if" => TokenType::If,
+            "else" => TokenType::Else,
+            "switch" => TokenType::Switch,
+            "default" => TokenType::DefaultCase,
+            "while" => TokenType::While,
+            "do" => TokenType::Do,
+            "for" => TokenType::For,
+            _ => TokenType::Identifier(id),
+        }
+    }
+    
+    fn directive_from(name: &str) -> TokenType {
+        match name {
+            "include" => TokenType::Include,
+            "define" => TokenType::Define,
+            _ => panic!("Syntax Error: This directive is not supported in this specific version of the compiler.\n"),
         }
     }
 
