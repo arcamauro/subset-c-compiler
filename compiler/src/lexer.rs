@@ -41,7 +41,7 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    pub fn new(source: &str) -> self {
+    pub fn new(source: &str) -> Self {
         Lexer {
             input: source.chars().collect(),
             position: 0,
