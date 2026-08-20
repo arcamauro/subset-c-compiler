@@ -77,11 +77,114 @@ impl Lexer {
         }
     }
     
-    //fn scan_token(&smut elf) -> Option<TokenType> {  
-    //}
+    fn scan_token(&mut self) -> Option<TokenType> {
+        let mut buffer = String::new();
+        loop {
+            match self.state {
+                State::Start => {
+                    self.skip_whitespaces();
+                    let character = self.peek_char()?;
+                    buffer.clear();
+                    match character {
+                        ';' => {
+                            self.advance_char();
+                            return Some(TokenType::Semicolon);
+                        },
+                        '(' => {
+                            self.advance_char();
+                            return Some(TokenType::OpenParentheses)
+                        },
+                        ')' => {
+                            self.advance_char();
+                            return Some(TokenType::ClosedParentheses);
+                        },
+                        '{' => {
+                            self.advance_char();
+                            return Some(TokenType::OpenBracket);
+                        },
+                        '}' => {
+                            self.advance_char();
+                            return Some(TokenType::ClosedBracket);
+                        },
+                        '#' => {
+                            self.advance_char();
+                            self.state = State::InDirective;
+                        }
+                        '"' => {
+                            self.advance_char();
+                            self.state = State::InString;
+                        }
+                        '/' => {
+                            self.advance_char();
+                            match self.peek_char() {
+                                Some('/') => {
+                                    self.advance_char();
+                                    self.state = State::InLineComment;
+                                }
+                                Some('*') => {
+                                    self.advance_char();
+                                    self.state = State::InBlockComment;
+                                }
+                                _ => return Some(TokenType::Operator('/'.to_string())),
+                            }
+                        }
+                        '0'..='9' => {
+                            buffer.push(self.advance_char().unwrap());
+                            self.state = State::InNumber;
+                        }
+                        'a'..='z' | 'A'..='Z' | _ => {
+                            buffer.push(self.advance_char().unwrap());
+                            self.state = State::InString;
+                        }
+                        other => panic!("Syntax error: unexpected character '{}'.\n", other),
+                    }
+                },
 
-    fn keyword_oe_identifier(id: String) -> TokenType {
+                State::InIdentifier => match self.peek_char() {
+                    Some(character) if character.is_alphanumeric() || character == '_' => {
+                        buffer.push(character);
+                        self.advance_char();
+                    }
+                    _ => {
+                        self.state = State::Start;
+                        return Some(Self::keyword_or_identifier(buffer));
+                    }
+                },
+                State::InDirective => match self.peek_char() {
+                    Some(character) if character.is_alphabetic() => {
+                        buffer.push(character);
+                        self.advance_char();
+                    }
+                    _ => {
+                        self.state = State::Start;
+                        return Some(Self::directive_from(&buffer));
+                    }
+                },
+
+                State::InString => {
+
+                },
+
+                State::InNumber => {
+                    
+                },
+
+                State::InBlockComment => {
+
+                },
+
+                State::InLineComment => {
+
+                }
+            }
+        }
+
+    }
+
+    fn keyword_or_identifier(id: String) -> TokenType {
         match id.as_str() {
+            "int" => TokenType::Int,
+            "char" => TokenType::Char,
             "return" => TokenType::Return,
             "if" => TokenType::If,
             "else" => TokenType::Else,
