@@ -11,8 +11,7 @@ enum TokenType {
     While,
     Do,
     Switch,
-    Default,
-    Comment,
+    DefaultCase,
     OpenBracket,
     ClosedBracket,
     Include,
@@ -29,7 +28,9 @@ enum State {
     InIdentifier,
     InNumber,
     InString,
-    InComment,
+    InDirective,
+    InLineComment,
+    InBlockComment,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -40,32 +41,39 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    fn advance_char(&mut self) -> Option<char> {
-        if self.position < self.input.len() {
-            let character = self.input[self.position];
-            self.position += 1;
-            Some(character)
-        } else {
-            None
+    pub fn new(source: &str) -> self {
+        Lexer {
+            input: source.chars().collect(),
+            position: 0,
+            state: State::Start,
         }
     }
-    fn peek_char(&self) -> Option<char> {
-        if self.position < self.len() {
+
+    fn advance_char(&mut self) -> Option <char> {
+        if self.position < self.input.len() {
+            self.position += 1;
             Some(self.input[self.position])
         } else {
             None
         }
     }
-    fn read_token(&mut self) -> Option<TokenType>{
-    
+
+    fn peek_char(&mut self) -> Option<char> {
+        if self.position < self.input.len() {
+            Some(self.input[self.position])
+        } else {
+            None
+        }
     }
 
-    fn read_number(&mut self, character: char) -> TokenType {
-
-    }
-
-    fn read_id_or_kw(&mut self, character: char) -> TokenType {
-
+    fn skip_whitespaces(&mut self) -> {
+        while let Some(character) = self.peek_char() {
+            if character.is_whitespace() {
+                self.advance_char();
+            } else {
+                break;
+            }
+        }
     }
 
 }
