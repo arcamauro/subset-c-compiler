@@ -132,7 +132,7 @@ impl Lexer {
                             buffer.push(self.advance_char().unwrap());
                             self.state = State::InNumber;
                         }
-                        'a'..='z' | 'A'..='Z' | _ => {
+                        'a'..='z' | 'A'..='Z' | '_'_ => {
                             buffer.push(self.advance_char().unwrap());
                             self.state = State::InString;
                         }
@@ -161,21 +161,50 @@ impl Lexer {
                     }
                 },
 
-                State::InString => {
-
+                State::InString => match self.advance_char() {
+                    Some('"') => {
+                        self.state = State::Start;
+                        return Some(TokenType::StringLiteral(buffer));
+                    }
+                    Some('\\') => {
+                        if let Some(esc) = self.advance_char() {
+                            match esc {
+                                'n' => buffer.push('\n'),
+                                't' => buffer.push('\t'),
+                                '"' => buffer.push('"'),
+                                '\\' => buffer.push('\\'),
+                                other => buffer.push(other),
+                            }
+                        }
+                    }
+                    Some(character) => buffer.push(character),
+                    None => panic!("Syntax error: unterminated string literal.\n"),
                 },
 
-                State::InNumber => {
-                    
+                State::InNumber => match self.peek_char() {
+                   Some(character) if character.is_ascii_digit() => {
+                       buffer.push(character);
+                       self.advance_char();
+                   }
+                   _ => {
+                       self.state = State::Start;
+                       return Some(TokenType::IntegerLiteral(buffer.parse().unwrap_or(0)));
+                   }
                 },
 
-                State::InBlockComment => {
-
+                State::InBlockComment => match self.peek_char() {
+                    Some('*') if self.peek_char() == Some('/') => {
+                        self.advance_char();
+                        self.state = State::Start;
+                    }
+                    Some(_) => {}
+                    None => panic!("Syntax Error: Unterminated multiline comment. \nAdd */ at the end to terminate it!\n"),
                 },
 
-                State::InLineComment => {
-
-                }
+                State::InLineComment => match self.peek_char() {
+                    Some('\n') | None => self.state = State::Start,
+                    Some(_) => {},
+                },
             }
         }
 
