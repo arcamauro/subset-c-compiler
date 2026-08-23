@@ -12,6 +12,7 @@ Since this project currently follows the building of a compiler of a *subset* of
 
 I'll probably add more functionalities in the future, such as static arrays or other data type like float, double, long, unsigned, signed and sized types
 
+---
 ## Lexer
 
 ### Implemented Tokens
@@ -106,3 +107,5 @@ IntegerLiteral(0)
 Semicolon
 ClosedBracket
 ```
+---
+## Parser
