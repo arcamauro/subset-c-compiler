@@ -1,6 +1,4 @@
-// in main.rs
-mod lexer;
-use lexer::Lexer;
+use compiler::lexer::Lexer;
 
 fn main() {
     let mut lexer = Lexer::new(
