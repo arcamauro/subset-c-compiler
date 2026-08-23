@@ -5,6 +5,7 @@ pub enum TokenType {
     OpenParentheses,
     ClosedParentheses,
     Semicolon,
+    Colon,
     Return,
     If,
     Else,
@@ -12,7 +13,10 @@ pub enum TokenType {
     Do,
     For,
     Switch,
+    Case,
     DefaultCase,
+    Break,
+    Continue,
     OpenBracket,
     ClosedBracket,
     Include,
@@ -93,6 +97,10 @@ impl Lexer {
                             self.advance_char();
                             return Some(TokenType::Semicolon);
                         },
+                        ':' => {
+                            self.advance_char();
+                            return Some(TokenType::Colon);
+                        },
                         '(' => {
                             self.advance_char();
                             return Some(TokenType::OpenParentheses)
@@ -125,12 +133,20 @@ impl Lexer {
                             self.advance_char();
                             return Some(TokenType::Operator('%'.to_string()));
                         }
+                        '*' => {
+                            self.advance_char();
+                            return Some(TokenType::Operator('*'.to_string()));
+                        }
                         '+' => {
                             self.advance_char();
                             match self.peek_char() {
                                 Some('+') => {
                                     self.advance_char();
                                     return Some(TokenType::Operator("++".to_string()));
+                                }
+                                Some('=') => {
+                                    self.advance_char();
+                                    return Some(TokenType::Operator("+=".to_string()));
                                 }
                                 _ => return Some(TokenType::Operator('+'.to_string())),
                             }
@@ -141,6 +157,10 @@ impl Lexer {
                                 Some('-') => {
                                     self.advance_char();
                                     return Some(TokenType::Operator("--".to_string()));
+                                }
+                                Some('=') => {
+                                    self.advance_char();
+                                    return Some(TokenType::Operator("-=".to_string()));
                                 }
                                 _ => return Some(TokenType::Operator('-'.to_string())),
                             }
@@ -322,10 +342,13 @@ impl Lexer {
             "if" => TokenType::If,
             "else" => TokenType::Else,
             "switch" => TokenType::Switch,
+            "case" => TokenType::Case,
             "default" => TokenType::DefaultCase,
             "while" => TokenType::While,
             "do" => TokenType::Do,
             "for" => TokenType::For,
+            "break" => TokenType::Break,
+            "continue" => TokenType::Continue,
             _ => TokenType::Identifier(id),
         }
     }
@@ -474,7 +497,24 @@ mod tests {
 
     #[test]
     fn keyword_do() {
-        assert_eq!(tokenize("do"), vec![TokenType::Do]);
+        assert_eq!(
+            tokenize("do { i++; } while (i < 10);"),
+            vec![
+                TokenType::Do,
+                TokenType::OpenBracket,
+                TokenType::Identifier("i".to_string()),
+                op("++"),
+                TokenType::Semicolon,
+                TokenType::ClosedBracket,
+                TokenType::While,
+                TokenType::OpenParentheses,
+                TokenType::Identifier("i".to_string()),
+                op("<"),
+                TokenType::IntegerLiteral(10),
+                TokenType::ClosedParentheses,
+                TokenType::Semicolon,
+            ]
+        );
     }
 
     #[test]
@@ -485,6 +525,50 @@ mod tests {
     #[test]
     fn keyword_default() {
         assert_eq!(tokenize("default"), vec![TokenType::DefaultCase]);
+    }
+
+    #[test]
+    fn keyword_case() {
+        assert_eq!(tokenize("case"), vec![TokenType::Case]);
+    }
+
+    #[test]
+    fn keyword_break() {
+        assert_eq!(tokenize("break"), vec![TokenType::Break]);
+    }
+
+    #[test]
+    fn keyword_continue() {
+        assert_eq!(tokenize("continue"), vec![TokenType::Continue]);
+    }
+
+    #[test]
+    fn switch_case_default_block() {
+        assert_eq!(
+            tokenize("switch (x) { case 1: break; default: continue; }"),
+            vec![
+                TokenType::Switch,
+                TokenType::OpenParentheses,
+                TokenType::Identifier("x".to_string()),
+                TokenType::ClosedParentheses,
+                TokenType::OpenBracket,
+                TokenType::Case,
+                TokenType::IntegerLiteral(1),
+                TokenType::Colon,
+                TokenType::Break,
+                TokenType::Semicolon,
+                TokenType::DefaultCase,
+                TokenType::Colon,
+                TokenType::Continue,
+                TokenType::Semicolon,
+                TokenType::ClosedBracket,
+            ]
+        );
+    }
+
+    #[test]
+    fn colon() {
+        assert_eq!(tokenize(":"), vec![TokenType::Colon]);
     }
 
     #[test]
@@ -548,6 +632,28 @@ mod tests {
     }
 
     #[test]
+    fn operator_multiplication() {
+        assert_eq!(tokenize("*"), vec![op("*")]);
+    }
+
+    #[test]
+    fn multiplication_does_not_break_block_comments() {
+        assert_eq!(
+            tokenize("a * b; /* comment */ c * d;"),
+            vec![
+                TokenType::Identifier("a".to_string()),
+                op("*"),
+                TokenType::Identifier("b".to_string()),
+                TokenType::Semicolon,
+                TokenType::Identifier("c".to_string()),
+                op("*"),
+                TokenType::Identifier("d".to_string()),
+                TokenType::Semicolon,
+            ]
+        );
+    }
+
+    #[test]
     fn operator_equality() {
         assert_eq!(tokenize("=="), vec![op("==")]);
     }
@@ -585,6 +691,33 @@ mod tests {
     #[test]
     fn operator_minus() {
         assert_eq!(tokenize("-"), vec![op("-")]);
+    }
+
+    #[test]
+    fn operator_plus_assign() {
+        assert_eq!(tokenize("+="), vec![op("+=")]);
+    }
+
+    #[test]
+    fn operator_minus_assign() {
+        assert_eq!(tokenize("-="), vec![op("-=")]);
+    }
+
+    #[test]
+    fn compound_assignment_in_context() {
+        assert_eq!(
+            tokenize("x += 1; y -= 2;"),
+            vec![
+                TokenType::Identifier("x".to_string()),
+                op("+="),
+                TokenType::IntegerLiteral(1),
+                TokenType::Semicolon,
+                TokenType::Identifier("y".to_string()),
+                op("-="),
+                TokenType::IntegerLiteral(2),
+                TokenType::Semicolon,
+            ]
+        );
     }
 
     #[test]
