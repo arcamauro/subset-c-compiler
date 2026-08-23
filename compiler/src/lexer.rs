@@ -586,4 +586,58 @@ mod tests {
     fn operator_minus() {
         assert_eq!(tokenize("-"), vec![op("-")]);
     }
+
+    #[test]
+    #[should_panic(expected = "unexpected character")]
+    fn unexpected_character_panics() {
+        tokenize("@");
+    }
+
+    #[test]
+    #[should_panic(expected = "expected '=' after the '!'")]
+    fn lone_bang_panics() {
+        tokenize("!a");
+    }
+
+    #[test]
+    #[should_panic(expected = "expected a second '&' after the first one")]
+    fn lone_ampersand_panics() {
+        tokenize("&a");
+    }
+
+    #[test]
+    #[should_panic(expected = "unterminated string literal")]
+    fn unterminated_string_literal_panics() {
+        tokenize("\"hello");
+    }
+
+    #[test]
+    #[should_panic(expected = "expected closing '")]
+    fn unterminated_char_literal_panics() {
+        tokenize("'a");
+    }
+
+    #[test]
+    #[should_panic(expected = "unterminated char literal")]
+    fn empty_char_literal_panics() {
+        tokenize("'");
+    }
+
+    #[test]
+    #[should_panic(expected = "expected closing '")]
+    fn char_literal_missing_closing_quote_panics() {
+        tokenize("'ab'");
+    }
+
+    #[test]
+    #[should_panic(expected = "Unterminated multiline comment")]
+    fn unterminated_block_comment_panics() {
+        tokenize("/* this comment never ends");
+    }
+
+    #[test]
+    #[should_panic(expected = "directive is not supported")]
+    fn unsupported_directive_panics() {
+        tokenize("#pragma");
+    }
 }
