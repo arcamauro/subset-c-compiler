@@ -3,6 +3,7 @@ use compiler::lexer::Lexer;
 fn main() {
     let mut lexer = Lexer::new(
         r#"
+        #include <stdio.h>
         int main() {
             int a = 10; // a is equals to 10
             int b = 11; // b is equals to 11

@@ -6,6 +6,7 @@ pub enum TokenType {
     ClosedParentheses,
     Semicolon,
     Colon,
+    Dot,
     Return,
     If,
     Else,
@@ -100,6 +101,10 @@ impl Lexer {
                         ':' => {
                             self.advance_char();
                             return Some(TokenType::Colon);
+                        },
+                        '.' => {
+                            self.advance_char();
+                            return Some(TokenType::Dot);
                         },
                         '(' => {
                             self.advance_char();

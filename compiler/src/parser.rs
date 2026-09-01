@@ -1,8 +1,12 @@
 use crate::lexer::TokenType;
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct Parser {
     tokens: Vec<TokenType>,
     position: usize,
 }
+
+
 
 impl Parser {
     pub fn new(tokens: Vec<TokenType>) -> Self {
