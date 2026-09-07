@@ -1,8 +1,6 @@
 # subset-c-compiler
 Compiler for a subset of C programming language. Made in Rust.
 
-*Disclaimer*: this codebase contains/will contain code that I will use for my bachelor thesis project, since I want to use this compiler for that scope. So I won't accept any PRs or external contributions until the end of my bachelor degree.
-
 Since this project currently follows the building of a compiler of a *subset* of the C programming language, I choose to stay simple and choose a limited number of functionalities, structures and types, specifically:
 - int, char and string literals
 - #include and #define preprocessor directives
