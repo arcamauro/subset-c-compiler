@@ -205,16 +205,6 @@ fn colon() {
 }
 
 #[test]
-fn directive_include() {
-    assert_eq!(tokenize("#include"), vec![TokenType::Include]);
-}
-
-#[test]
-fn directive_define() {
-    assert_eq!(tokenize("#define"), vec![TokenType::Define]);
-}
-
-#[test]
 fn string_literal() {
     assert_eq!(
         tokenize("\"hello\""),
@@ -399,10 +389,4 @@ fn char_literal_missing_closing_quote_panics() {
 #[should_panic(expected = "Unterminated multiline comment")]
 fn unterminated_block_comment_panics() {
     tokenize("/* this comment never ends");
-}
-
-#[test]
-#[should_panic(expected = "directive is not supported")]
-fn unsupported_directive_panics() {
-    tokenize("#pragma");
 }

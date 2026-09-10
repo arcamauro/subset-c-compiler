@@ -39,9 +39,10 @@ pub enum Stmt {
     },
     ReturnStmt(Option<Expr>),
     Expr(Expr),
+    Block(Vec<Stmt>),
     If {
         condition: Expr,
-        b_then: Box(stmt),
+        b_then: Box<Stmt>,
         b_else: Option<Box<Stmt>>,
     },
     While {
@@ -66,11 +67,6 @@ pub enum Stmt {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Item {
-    Include (String),
-    Define {
-        name: String,
-        value: Option<Expr>,
-    },
     Function(Function)
 }
 

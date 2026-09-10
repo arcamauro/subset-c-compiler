@@ -1,9 +1,10 @@
 use compiler::lexer::Lexer;
+use compiler::parser::Parser;
+use compiler::preprocessor::preprocess;
 
 fn main() {
-    let mut lexer = Lexer::new(
+    let source = preprocess(
         r#"
-        #include <stdio.h>
         int main() {
             int a = 10; // a is equals to 10
             int b = 11; // b is equals to 11
@@ -21,7 +22,13 @@ fn main() {
         "#,
     );
 
+    let mut lexer = Lexer::new(&source);
+    let mut tokens = Vec::new();
     while let Some(token) = lexer.scan_token() {
-        println!("{:?}", token);
+        tokens.push(token);
     }
+
+    let mut parser = Parser::new(tokens);
+    let program = parser.parse_program();
+    println!("{:#?}", program);
 }

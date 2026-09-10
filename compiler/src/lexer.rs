@@ -7,6 +7,7 @@ pub enum TokenType {
     Semicolon,
     Colon,
     Dot,
+    Comma,
     Return,
     If,
     Else,
@@ -20,8 +21,6 @@ pub enum TokenType {
     Continue,
     OpenBracket,
     ClosedBracket,
-    Include,
-    Define,
     Operator(String),
     Identifier(String),
     IntegerLiteral(i32),
@@ -36,7 +35,6 @@ enum State {
     InNumber,
     InString,
     InChar,
-    InDirective,
     InLineComment,
     InBlockComment,
 }
@@ -102,6 +100,10 @@ impl Lexer {
                             self.advance_char();
                             return Some(TokenType::Colon);
                         },
+                        ',' => {
+                            self.advance_char();
+                            return Some(TokenType::Comma);
+                        },
                         '.' => {
                             self.advance_char();
                             return Some(TokenType::Dot);
@@ -122,10 +124,6 @@ impl Lexer {
                             self.advance_char();
                             return Some(TokenType::ClosedBracket);
                         },
-                        '#' => {
-                            self.advance_char();
-                            self.state = State::InDirective;
-                        }
                         '"' => {
                             self.advance_char();
                             self.state = State::InString;
@@ -257,17 +255,6 @@ impl Lexer {
                         return Some(Self::keyword_or_identifier(buffer));
                     }
                 },
-                State::InDirective => match self.peek_char() {
-                    Some(character) if character.is_alphabetic() => {
-                        buffer.push(character);
-                        self.advance_char();
-                    }
-                    _ => {
-                        self.state = State::Start;
-                        return Some(Self::directive_from(&buffer));
-                    }
-                },
-
                 State::InString => match self.advance_char() {
                     Some('"') => {
                         self.state = State::Start;
@@ -358,12 +345,4 @@ impl Lexer {
         }
     }
     
-    fn directive_from(name: &str) -> TokenType {
-        match name {
-            "include" => TokenType::Include,
-            "define" => TokenType::Define,
-            _ => panic!("Syntax Error: This directive is not supported in this specific version of the compiler.\n"),
-        }
-    }
-
 }
