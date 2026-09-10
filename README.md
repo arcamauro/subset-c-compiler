@@ -29,6 +29,8 @@ By the time the Lexer sees the result, every `#include` and `#define` has alread
 ### Caveat
 Since this calls the *real* gcc preprocessor, `#include <stdio.h>` doesn't just disappear: it pastes in the full contents of the actual system header, which is far beyond this project's subset grammar. For now, test programs avoid including real system headers and simply call external functions like `printf` without declaring them, since there's no type-checking yet.
 
+Planned improvement: ship a small personal header library containing only the declarations this subset actually cares about (e.g. a minimal `stdio.h` stub with just `printf`), and point gcc at it with `-I`/`-nostdinc` so `#include <stdio.h>` resolves to that stub instead of the real system header. This keeps genuine `#include`/macro-expansion semantics while keeping preprocessed output within the subset grammar.
+
 ---
 ## Lexer
 
