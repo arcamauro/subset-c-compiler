@@ -6,5 +6,6 @@ This project is currently under active development. You can check the [`dev`](./
 - [x] **Lexer**: Finite State Automaton (FSA) approach
 - [x] **Parser & AST**: Top-Down Recursive Descent Parser (LL(1)) generating a strongly-typed Abstract Syntax Tree
 - [x] **AST Generation**: Full AST modeling using Rust algebraic data types (`enum`) and smart pointers (`Box`)
+- [ ] **Semantic Analysis**: Type checking and symbol table management *(In Progress)*
 - [ ] **Intermediate code**: to lower AST constructs into three-address code (TAC).
 - [ ] **Code Generation**: Target code emission for RISC-V architecture
