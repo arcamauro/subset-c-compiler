@@ -63,6 +63,8 @@ pub enum Stmt {
         cond: Expr,
         cases: Vec<SwitchCase>,
     },
+    Break,
+    Continue,
 }
 
 #[derive(Debug, PartialEq, Clone)]

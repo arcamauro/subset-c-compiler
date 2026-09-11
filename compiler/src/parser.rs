@@ -134,7 +134,7 @@ impl Parser {
         let mut expr = self.parse_relational();
 
         while let Some(TokenType::Operator(op)) = self.peek().cloned() {
-            if op != "==" && op != "!=" {
+            if op != "=" && op != "!=" {
                 break;
             }
             self.advance();
@@ -239,6 +239,7 @@ impl Parser {
 
     fn parse_statement(&mut self) -> Stmt {
         match self.peek().cloned() {
+            Some(TokenType::OpenBracket) => self.parse_block(),
             Some(TokenType::Int) | Some(TokenType::Char) => self.parse_var_declaration(),
             Some(TokenType::Return) => self.parse_return_stmt(),
             Some(TokenType::If) => self.parse_if_stmt(),
@@ -246,8 +247,48 @@ impl Parser {
             Some(TokenType::Do) => self.parse_do_while_stmt(),
             Some(TokenType::For) => self.parse_for_stmt(),
             Some(TokenType::Switch) => self.parse_switch_stmt(),
+            Some(TokenType::Break) => self.parse_break_stmt(),
+            Some(TokenType::Continue) => self.parse_continue_stmt(),
             _ => self.parse_expr_stmt(),
         }
+    }
+
+    fn parse_break_stmt(&mut self) -> Stmt {
+        match self.peek().cloned() {
+            Some(TokenType::Break) => {
+                self.advance();
+            }
+            other => panic!("Syntax error: expected 'break', found {:?}.\n", other),
+        }
+
+        match self.advance() {
+            Some(TokenType::Semicolon) => {}
+            other => panic!(
+                "Syntax error: expected ';' after 'break', found {:?}.\n",
+                other
+            ),
+        }
+
+        Stmt::Break
+    }
+
+    fn parse_continue_stmt(&mut self) -> Stmt {
+        match self.peek().cloned() {
+            Some(TokenType::Continue) => {
+                self.advance();
+            }
+            other => panic!("Syntax error: expected 'continue', found {:?}.\n", other),
+        }
+
+        match self.advance() {
+            Some(TokenType::Semicolon) => {}
+            other => panic!(
+                "Syntax error: expected ';' after 'continue', found {:?}.\n",
+                other
+            ),
+        }
+
+        Stmt::Continue
     }
 
     fn parse_type(&mut self) -> Type {
