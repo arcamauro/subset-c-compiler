@@ -1,10 +1,13 @@
 use compiler::lexer::Lexer;
 use compiler::parser::Parser;
 use compiler::preprocessor::preprocess;
+use compiler::semantic_analyzer::SemanticAnalyzer;
 
 fn main() {
     let source = preprocess(
         r#"
+        #include <stdio.h>
+
         int main() {
             int a = 10; // a is equals to 10
             int b = 11; // b is equals to 11
@@ -30,5 +33,13 @@ fn main() {
 
     let mut parser = Parser::new(tokens);
     let program = parser.parse_program();
-    println!("{:#?}", program);
+
+    match SemanticAnalyzer::new().analyze(&program) {
+        Ok(()) => println!("{:#?}", program),
+        Err(errors) => {
+            for error in errors {
+                eprintln!("Semantic error: {}", error);
+            }
+        }
+    }
 }

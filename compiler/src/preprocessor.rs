@@ -1,9 +1,11 @@
 use std::io::Write;
 use std::process::{Command, Stdio};
 
+const INCLUDE_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/include");
+
 pub fn preprocess(source: &str) -> String {
     let mut child = Command::new("gcc")
-        .args(["-E", "-P", "-x", "c", "-"])
+        .args(["-E", "-P", "-nostdinc", "-I", INCLUDE_DIR, "-x", "c", "-"])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())

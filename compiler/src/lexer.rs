@@ -2,6 +2,7 @@
 pub enum TokenType {
     Int,
     Char,
+    String,
     OpenParentheses,
     ClosedParentheses,
     Semicolon,
@@ -330,6 +331,7 @@ impl Lexer {
         match id.as_str() {
             "int" => TokenType::Int,
             "char" => TokenType::Char,
+            "string" => TokenType::String,
             "return" => TokenType::Return,
             "if" => TokenType::If,
             "else" => TokenType::Else,

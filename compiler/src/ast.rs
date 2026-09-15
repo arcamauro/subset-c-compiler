@@ -2,6 +2,7 @@
 pub enum Type {
     Int,
     Char,
+    String,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -69,7 +70,8 @@ pub enum Stmt {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Item {
-    Function(Function)
+    Function(Function),
+    FunctionDecl(FunctionDecl),
 }
 
 
@@ -96,4 +98,11 @@ pub struct Function {
 pub struct Param {
     pub param_type: Type,
     pub name: String,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct FunctionDecl {
+    pub ret_type: Type,
+    pub name: String,
+    pub params: Vec<Param>,
 }

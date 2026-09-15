@@ -15,7 +15,7 @@ fn parse_body(stmt_source: &str) -> Vec<Stmt> {
     let src = format!("int main() {{ {} }}", stmt_source);
     match parse(&src).items.into_iter().next() {
         Some(Item::Function(f)) => f.body,
-        None => panic!("expected a function item"),
+        other => panic!("expected a function item, found {:?}", other),
     }
 }
 
@@ -141,6 +141,7 @@ fn multiple_functions_in_program() {
                 vec![Stmt::ReturnStmt(Some(call("add", vec![int_lit(1), int_lit(2)])))]
             );
         }
+        other => panic!("expected a function item, found {:?}", other),
     }
 }
 

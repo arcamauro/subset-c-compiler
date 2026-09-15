@@ -1,5 +1,5 @@
 use crate::lexer::TokenType;
-use crate::ast::{Expr, Function, Item, Param, Program, Stmt, SwitchCase, Type};
+use crate::ast::{Expr, Function, FunctionDecl, Item, Param, Program, Stmt, SwitchCase, Type};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Parser {
@@ -134,7 +134,7 @@ impl Parser {
         let mut expr = self.parse_relational();
 
         while let Some(TokenType::Operator(op)) = self.peek().cloned() {
-            if op != "=" && op != "!=" {
+            if op != "==" && op != "!=" {
                 break;
             }
             self.advance();
@@ -240,7 +240,9 @@ impl Parser {
     fn parse_statement(&mut self) -> Stmt {
         match self.peek().cloned() {
             Some(TokenType::OpenBracket) => self.parse_block(),
-            Some(TokenType::Int) | Some(TokenType::Char) => self.parse_var_declaration(),
+            Some(TokenType::Int) | Some(TokenType::Char) | Some(TokenType::String) => {
+                self.parse_var_declaration()
+            }
             Some(TokenType::Return) => self.parse_return_stmt(),
             Some(TokenType::If) => self.parse_if_stmt(),
             Some(TokenType::While) => self.parse_while_stmt(),
@@ -300,6 +302,10 @@ impl Parser {
             Some(TokenType::Char) => {
                 self.advance();
                 Type::Char
+            }
+            Some(TokenType::String) => {
+                self.advance();
+                Type::String
             }
             other => panic!("Syntax error: expected a type, found {:?}.\n", other),
         }
@@ -698,10 +704,6 @@ impl Parser {
     }
 
     fn parse_item(&mut self) -> Item {
-        Item::Function(self.parse_function())
-    }
-
-    fn parse_function(&mut self) -> Function {
         let ret_type = self.parse_type();
 
         let name = match self.peek().cloned() {
@@ -735,11 +737,15 @@ impl Parser {
         }
 
         match self.peek().cloned() {
+            Some(TokenType::Semicolon) => {
+                self.advance();
+                return Item::FunctionDecl(FunctionDecl { ret_type, name, params });
+            }
             Some(TokenType::OpenBracket) => {
                 self.advance();
             }
             other => panic!(
-                "Syntax error: expected '{{' to start function body, found {:?}.\n",
+                "Syntax error: expected '{{' to start function body or ';' for a declaration, found {:?}.\n",
                 other
             ),
         }
@@ -760,12 +766,12 @@ impl Parser {
             ),
         }
 
-        Function {
+        Item::Function(Function {
             ret_type,
             name,
             params,
             body,
-        }
+        })
     }
 
     fn parse_param(&mut self) -> Param {
