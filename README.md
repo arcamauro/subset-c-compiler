@@ -276,3 +276,37 @@ Program {
     ],
 }
 ```
+
+---
+
+## Semantic Analyzer
+The semantic analyzer validates program correctness beyond syntax by walking the AST and enforcing language rules that require contextual information.
+
+Implemented approach
+- Scope-aware symbol table: a stack of scopes is used to track variables, parameters and function signatures. New scopes are pushed for function bodies, blocks and `for` initializers and popped afterwards.
+- Function-first pass: all function signatures (names, parameter types, return types) are registered before bodies are checked so calls can be validated against their declarations.
+
+Checks performed
+- Undeclared identifiers: usages of variables or functions that are not declared produce an error.
+- Redeclarations: declaring the same name twice in the same scope is flagged as an error.
+- Type checks:
+    - Literals have concrete types (`int`, `char`, `string`).
+    - Assignment expressions (`a = ...`) require the left-hand variable type to match the right-hand expression type. Variable declaration initializers (`int a = ...`) are not yet type-checked against the declared type.
+    - Binary operations require both operands to have the same type.
+    - Function call arguments are checked for arity and per-argument type compatibility with the declared parameter types.
+    - Return statements are checked against the current function's declared return type.
+- Control-flow checks:
+    - `break` is only allowed inside loops or `switch` statements.
+    - `continue` is only allowed inside loops.
+- Block scoping: variables declared inside blocks (including `for` initializers and explicit `{}` blocks) are confined to that scope.
+
+Limitations / current behavior
+- Type system is simple: there are only `Int`, `Char` and `String` types and no implicit conversions or promotions.
+- No support yet for composite types (arrays, structs, pointers) or qualifiers (signed/unsigned/long).
+- Undeclared function usages and other errors default to reporting a sensible error and continue analysis (best-effort error recovery).
+
+Example errors the analyzer can produce
+- `Undeclared identifier 'x'`
+- `Redeclaration of 'i' in same scope`
+- `Return type mismatch: expected Int, found String`
+- `Function 'foo' expects 2 argument(s), found 1`
