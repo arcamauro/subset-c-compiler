@@ -1,9 +1,9 @@
-use compiler::ast::Program;
+use compiler::ast::{DecoratedProgram, Type};
 use compiler::lexer::Lexer;
 use compiler::parser::Parser;
 use compiler::semantic_analyzer::SemanticAnalyzer;
 
-fn analyze(source: &str) -> Result<Program, Vec<String>> {
+fn analyze(source: &str) -> Result<DecoratedProgram, Vec<String>> {
     let mut lexer = Lexer::new(source);
     let mut tokens = Vec::new();
     while let Some(token) = lexer.scan_token() {
@@ -17,7 +17,7 @@ fn errors(source: &str) -> Vec<String> {
     analyze(source).expect_err("expected semantic analysis to fail")
 }
 
-fn analyzed_program(source: &str) -> Program {
+fn analyzed_program(source: &str) -> DecoratedProgram {
     let mut lexer = Lexer::new(source);
     let mut tokens = Vec::new();
     while let Some(token) = lexer.scan_token() {
@@ -33,7 +33,13 @@ fn analyzed_program(source: &str) -> Program {
 fn analyzer_returns_the_decorated_ast() {
     let program = analyzed_program("int main() { return 0; }");
     assert_eq!(program.items.len(), 1);
-    assert!(matches!(program.items[0], compiler::ast::Item::Function(_)));
+    match &program.items[0] {
+        compiler::ast::DecoratedItem::Function(func) => {
+            assert_eq!(func.function.name, "main");
+            assert_eq!(func.body[0].inferred_type, Some(Type::Int));
+        }
+        compiler::ast::DecoratedItem::FunctionDecl(_) => panic!("expected function item"),
+    }
 }
 
 #[test]

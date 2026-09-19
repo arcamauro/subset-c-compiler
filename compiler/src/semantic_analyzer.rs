@@ -1,5 +1,8 @@
 use std::collections::HashMap;
-use crate::ast::{Program, Item, Function, Param, Type, Expr, Stmt};
+use crate::ast::{
+    DecoratedFunction, DecoratedItem, DecoratedProgram, DecoratedStmt,
+    Program, Item, Function, Param, Type, Expr, Stmt,
+};
 
 #[derive(Debug, PartialEq, Clone)]
 struct Symbol {
@@ -81,7 +84,7 @@ impl SemanticAnalyzer {
         );
     }
 
-    pub fn analyze(&mut self, program: &Program) -> Result<Program, Vec<String>> {
+    pub fn analyze(&mut self, program: &Program) -> Result<DecoratedProgram, Vec<String>> {
         self.errors.clear();
         self.scopes.clear();
         self.scopes.push(HashMap::new());
@@ -107,10 +110,100 @@ impl SemanticAnalyzer {
             }
         }
 
-        if self.errors.is_empty() {
-            Ok(program.clone())
-        } else {
-            Err(self.errors.clone())
+        if !self.errors.is_empty() {
+            return Err(self.errors.clone());
+        }
+
+        let symbol_table = program
+            .items
+            .iter()
+            .filter_map(|item| match item {
+                Item::Function(func) => Some((func.name.clone(), func.ret_type.clone())),
+                Item::FunctionDecl(decl) => Some((decl.name.clone(), decl.ret_type.clone())),
+            })
+            .collect();
+
+        let items = program
+            .items
+            .iter()
+            .map(|item| match item {
+                Item::Function(func) => DecoratedItem::Function(DecoratedFunction {
+                    function: func.clone(),
+                    body: func
+                        .body
+                        .iter()
+                        .map(|stmt| self.decorate_stmt(stmt))
+                        .collect(),
+                }),
+                Item::FunctionDecl(decl) => DecoratedItem::FunctionDecl(decl.clone()),
+            })
+            .collect();
+
+        Ok(DecoratedProgram { items, symbol_table })
+    }
+
+    fn decorate_stmt(&self, stmt: &Stmt) -> DecoratedStmt {
+        let inferred_type = match stmt {
+            Stmt::VarDeclaration { varType, value, .. } => {
+                if let Some(expr) = value {
+                    let expr_ty = self.infer_expr_type(expr);
+                    if expr_ty != *varType {
+                        None
+                    } else {
+                        Some(varType.clone())
+                    }
+                } else {
+                    Some(varType.clone())
+                }
+            }
+            Stmt::ReturnStmt(Some(expr)) => Some(self.infer_expr_type(expr)),
+            Stmt::ReturnStmt(None) => None,
+            Stmt::Expr(expr) => Some(self.infer_expr_type(expr)),
+            Stmt::Block(stmts) => {
+                let last = stmts.last().and_then(|s| self.decorate_stmt(s).inferred_type);
+                last.or_else(|| None)
+            }
+            Stmt::If { condition, .. } => Some(self.infer_expr_type(condition)),
+            Stmt::While { condition, .. } => Some(self.infer_expr_type(condition)),
+            Stmt::DoWhile { condition, .. } => Some(self.infer_expr_type(condition)),
+            Stmt::For { condition, .. } => Some(self.infer_expr_type(condition)),
+            Stmt::Switch { cond, .. } => Some(self.infer_expr_type(cond)),
+            Stmt::Break | Stmt::Continue => None,
+        };
+
+        DecoratedStmt {
+            stmt: stmt.clone(),
+            inferred_type,
+        }
+    }
+
+    fn infer_expr_type(&self, expr: &Expr) -> Type {
+        match expr {
+            Expr::IntegerLit(_) => Type::Int,
+            Expr::CharLit(_) => Type::Char,
+            Expr::StringLit(_) => Type::String,
+            Expr::Identifier(name) => match self.lookup(name) {
+                Some(symbol) => symbol.ty.clone(),
+                None => Type::Int,
+            },
+            Expr::Assignment { target, value, .. } => {
+                let target_ty = self.infer_expr_type(target);
+                let _ = self.infer_expr_type(value);
+                target_ty
+            }
+            Expr::BinaryOp { left, right, .. } => {
+                let left_ty = self.infer_expr_type(left);
+                let right_ty = self.infer_expr_type(right);
+                if left_ty == right_ty { left_ty } else { Type::Int }
+            }
+            Expr::UnaryOp { expr, .. } => self.infer_expr_type(expr),
+            Expr::FunCall { callee, .. } => match self.lookup(callee) {
+                Some(symbol) => match &symbol.kind {
+                    Kind::Function { return_value, .. } => return_value.clone(),
+                    _ => Type::Int,
+                },
+                None => Type::Int,
+            },
         }
     }
 

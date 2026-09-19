@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Type {
     Int,
@@ -105,4 +107,34 @@ pub struct FunctionDecl {
     pub ret_type: Type,
     pub name: String,
     pub params: Vec<Param>,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct DecoratedExpr {
+    pub expr: Expr,
+    pub inferred_type: Type,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct DecoratedStmt {
+    pub stmt: Stmt,
+    pub inferred_type: Option<Type>,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct DecoratedFunction {
+    pub function: Function,
+    pub body: Vec<DecoratedStmt>,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum DecoratedItem {
+    Function(DecoratedFunction),
+    FunctionDecl(FunctionDecl),
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct DecoratedProgram {
+    pub items: Vec<DecoratedItem>,
+    pub symbol_table: HashMap<String, Type>,
 }
