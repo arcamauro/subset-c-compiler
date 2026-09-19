@@ -1,8 +1,9 @@
+use compiler::ast::Program;
 use compiler::lexer::Lexer;
 use compiler::parser::Parser;
 use compiler::semantic_analyzer::SemanticAnalyzer;
 
-fn analyze(source: &str) -> Result<(), Vec<String>> {
+fn analyze(source: &str) -> Result<Program, Vec<String>> {
     let mut lexer = Lexer::new(source);
     let mut tokens = Vec::new();
     while let Some(token) = lexer.scan_token() {
@@ -16,27 +17,43 @@ fn errors(source: &str) -> Vec<String> {
     analyze(source).expect_err("expected semantic analysis to fail")
 }
 
+fn analyzed_program(source: &str) -> Program {
+    let mut lexer = Lexer::new(source);
+    let mut tokens = Vec::new();
+    while let Some(token) = lexer.scan_token() {
+        tokens.push(token);
+    }
+    let program = Parser::new(tokens).parse_program();
+    SemanticAnalyzer::new()
+        .analyze(&program)
+        .expect("expected semantic analysis to succeed")
+}
+
+#[test]
+fn analyzer_returns_the_decorated_ast() {
+    let program = analyzed_program("int main() { return 0; }");
+    assert_eq!(program.items.len(), 1);
+    assert!(matches!(program.items[0], compiler::ast::Item::Function(_)));
+}
+
 #[test]
 fn empty_main_is_ok() {
-    assert_eq!(analyze("int main() { return 0; }"), Ok(()));
+    assert!(analyze("int main() { return 0; }").is_ok());
 }
 
 #[test]
 fn function_using_its_own_params_is_ok() {
-    assert_eq!(
-        analyze("int add(int a, int b) { return a + b; }"),
-        Ok(())
-    );
+    assert!(analyze("int add(int a, int b) { return a + b; }").is_ok());
 }
 
 #[test]
 fn calling_a_previously_declared_function_is_ok() {
-    assert_eq!(
+    assert!(
         analyze(
             "int add(int a, int b) { return a + b; }
              int main() { return add(1, 2); }"
-        ),
-        Ok(())
+        )
+        .is_ok()
     );
 }
 
@@ -85,10 +102,7 @@ fn redeclaring_a_parameter_as_a_local_is_reported() {
 
 #[test]
 fn shadowing_in_a_nested_block_is_allowed() {
-    assert_eq!(
-        analyze("int main() { int a; { int a; } return 0; }"),
-        Ok(())
-    );
+    assert!(analyze("int main() { int a; { int a; } return 0; }").is_ok());
 }
 
 #[test]
@@ -141,7 +155,7 @@ fn missing_return_value_is_reported() {
 
 #[test]
 fn char_function_returning_char_is_ok() {
-    assert_eq!(analyze("char get() { return 'x'; }"), Ok(()));
+    assert!(analyze("char get() { return 'x'; }").is_ok());
 }
 
 #[test]
@@ -195,26 +209,20 @@ fn continue_outside_loop_is_reported() {
 
 #[test]
 fn break_inside_while_loop_is_ok() {
-    assert_eq!(
-        analyze("int main() { while (1) { break; } return 0; }"),
-        Ok(())
-    );
+    assert!(analyze("int main() { while (1) { break; } return 0; }").is_ok());
 }
 
 #[test]
 fn continue_inside_for_loop_is_ok() {
-    assert_eq!(
-        analyze("int main() { for (int i = 0; i < 10; i++) { continue; } return 0; }"),
-        Ok(())
+    assert!(
+        analyze("int main() { for (int i = 0; i < 10; i++) { continue; } return 0; }")
+            .is_ok()
     );
 }
 
 #[test]
 fn break_inside_switch_without_a_loop_is_ok() {
-    assert_eq!(
-        analyze("int main() { switch (1) { case 1: break; } return 0; }"),
-        Ok(())
-    );
+    assert!(analyze("int main() { switch (1) { case 1: break; } return 0; }").is_ok());
 }
 
 #[test]
@@ -226,7 +234,7 @@ fn continue_inside_switch_without_a_loop_is_reported() {
 
 #[test]
 fn continue_inside_switch_nested_in_a_loop_is_ok() {
-    assert_eq!(
+    assert!(
         analyze(
             "int main() {
                  while (1) {
@@ -236,8 +244,8 @@ fn continue_inside_switch_nested_in_a_loop_is_ok() {
                  }
                  return 0;
              }"
-        ),
-        Ok(())
+        )
+        .is_ok()
     );
 }
 
@@ -265,10 +273,7 @@ fn function_with_no_return_statement_is_reported() {
 
 #[test]
 fn if_else_where_both_branches_return_is_ok() {
-    assert_eq!(
-        analyze("int main() { if (1) { return 1; } else { return 0; } }"),
-        Ok(())
-    );
+    assert!(analyze("int main() { if (1) { return 1; } else { return 0; } }").is_ok());
 }
 
 #[test]

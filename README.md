@@ -285,6 +285,7 @@ The semantic analyzer validates program correctness beyond syntax by walking the
 Implemented approach
 - Scope-aware symbol table: a stack of scopes is used to track variables, parameters and function signatures. New scopes are pushed for function bodies, blocks and `for` initializers and popped afterwards.
 - Function-first pass: all function signatures (names, parameter types, return types) are registered before bodies are checked so calls can be validated against their declarations.
+- AST contract: the semantic analyzer exposes `analyze(program) -> Result<Program, Vec<String>>` and returns the validated AST on success (Decorated AST) so downstream phases such as intermediate code generation can use the decorated tree.
 
 Checks performed
 - Undeclared identifiers: usages of variables or functions that are not declared produce an error.

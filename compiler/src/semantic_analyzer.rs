@@ -81,7 +81,14 @@ impl SemanticAnalyzer {
         );
     }
 
-    pub fn analyze(&mut self, program: &Program) -> Result<(), Vec<String>> {
+    pub fn analyze(&mut self, program: &Program) -> Result<Program, Vec<String>> {
+        self.errors.clear();
+        self.scopes.clear();
+        self.scopes.push(HashMap::new());
+        self.current_return_type = None;
+        self.loop_depth = 0;
+        self.switch_depth = 0;
+
         for item in &program.items {
             match item {
                 Item::Function(func) => {
@@ -101,7 +108,7 @@ impl SemanticAnalyzer {
         }
 
         if self.errors.is_empty() {
-            Ok(())
+            Ok(program.clone())
         } else {
             Err(self.errors.clone())
         }
