@@ -35,7 +35,7 @@ fn main() {
     let program = parser.parse_program();
 
     match SemanticAnalyzer::new().analyze(&program) {
-        Ok(()) => println!("{:#?}", program),
+        Ok(annotated_program) => println!("{:#?}", annotated_program),
         Err(errors) => {
             for error in errors {
                 eprintln!("Semantic error: {}", error);
