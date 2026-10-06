@@ -144,16 +144,16 @@ impl SemanticAnalyzer {
 
     fn decorate_stmt(&self, stmt: &Stmt) -> DecoratedStmt {
         let inferred_type = match stmt {
-            Stmt::VarDeclaration { varType, value, .. } => {
+            Stmt::VarDeclaration { var_type, value, .. } => {
                 if let Some(expr) = value {
                     let expr_ty = self.infer_expr_type(expr);
-                    if expr_ty != *varType {
+                    if expr_ty != *var_type {
                         None
                     } else {
-                        Some(varType.clone())
+                        Some(var_type.clone())
                     }
                 } else {
-                    Some(varType.clone())
+                    Some(var_type.clone())
                 }
             }
             Stmt::ReturnStmt(Some(expr)) => Some(self.infer_expr_type(expr)),
@@ -260,7 +260,7 @@ impl SemanticAnalyzer {
 
     fn check_stmt(&mut self, stmt: &Stmt) {
         match stmt {
-            Stmt::VarDeclaration { varType, name, value } => {
+            Stmt::VarDeclaration { var_type, name, value } => {
                 if let Some(expr) = value {
                     self.check_expr(expr);
                 }
@@ -268,7 +268,7 @@ impl SemanticAnalyzer {
                     name.clone(),
                     Symbol {
                         name: name.clone(),
-                        ty: varType.clone(),
+                        ty: var_type.clone(),
                         kind: Kind::Variable,
                     },
                 );

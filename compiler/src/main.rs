@@ -7,22 +7,15 @@ fn main() {
     println!("---- source 1 should display generated tokens, ast and decorated ast ----");
     let source = preprocess(
         r#"
-        #include <stdio.h>
-
         int main() {
-            int a = 10; // a is equals to 10
-            int b = 11; // b is equals to 11
-            /*
-             * Prints hello world ten times
-             * Increments 'a' and decrements 'b'
-             */
-            for (int i = 0; i < 10; i++) {
-                printf("Hello world\n");
-                a += 2;
-                b -= 1;
-            }
-            return 0;
+            int x = 0;
+
+            while (x < 10) {
+            x = x + 1;
         }
+
+        return x;
+}
         "#,
     );
 
@@ -48,7 +41,7 @@ fn main() {
         }
     }
 
-    println!("---- source2 should display semantic error (a is not declarated)----");
+    println!("---- source 2 should display semantic error (a is not declarated)----");
     let source2 = preprocess(
         r#"
         #include <stdio.h>

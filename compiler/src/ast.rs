@@ -36,7 +36,7 @@ pub enum Expr {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
     VarDeclaration {
-        varType: Type,
+        var_type: Type,
         name: String,
         value: Option<Expr>
     },

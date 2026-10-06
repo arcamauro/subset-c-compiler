@@ -339,7 +339,7 @@ impl Parser {
         }
 
         Stmt::VarDeclaration {
-            varType: var_type,
+            var_type: var_type,
             name,
             value,
         }
