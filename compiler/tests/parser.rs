@@ -150,7 +150,7 @@ fn int_declaration_without_initializer() {
     assert_eq!(
         parse_body("int a;"),
         vec![Stmt::VarDeclaration {
-            varType: Type::Int,
+            var_type: Type::Int,
             name: "a".to_string(),
             value: None,
         }]
@@ -162,7 +162,7 @@ fn int_declaration_with_initializer() {
     assert_eq!(
         parse_body("int a = 10;"),
         vec![Stmt::VarDeclaration {
-            varType: Type::Int,
+            var_type: Type::Int,
             name: "a".to_string(),
             value: Some(int_lit(10)),
         }]
@@ -174,7 +174,7 @@ fn char_declaration_with_initializer() {
     assert_eq!(
         parse_body("char c = 'x';"),
         vec![Stmt::VarDeclaration {
-            varType: Type::Char,
+            var_type: Type::Char,
             name: "c".to_string(),
             value: Some(Expr::CharLit('x')),
         }]
@@ -494,7 +494,7 @@ fn for_loop_full_header() {
         parse_body("for (int i = 0; i < 10; i++) { a++; }"),
         vec![Stmt::For {
             init: Some(Box::new(Stmt::VarDeclaration {
-                varType: Type::Int,
+                var_type: Type::Int,
                 name: "i".to_string(),
                 value: Some(int_lit(0)),
             })),
@@ -524,7 +524,7 @@ fn for_loop_with_empty_update() {
         parse_body("for (int i = 0; i < 10;) {}"),
         vec![Stmt::For {
             init: Some(Box::new(Stmt::VarDeclaration {
-                varType: Type::Int,
+                var_type: Type::Int,
                 name: "i".to_string(),
                 value: Some(int_lit(0)),
             })),
@@ -651,7 +651,7 @@ fn continue_inside_for_loop() {
         parse_body("for (int i = 0; i < 10; i++) { continue; }"),
         vec![Stmt::For {
             init: Some(Box::new(Stmt::VarDeclaration {
-                varType: Type::Int,
+                var_type: Type::Int,
                 name: "i".to_string(),
                 value: Some(int_lit(0)),
             })),
@@ -709,7 +709,7 @@ fn block_as_one_of_several_statements_in_function_body() {
         parse_body("int a; { a = 1; } return a;"),
         vec![
             Stmt::VarDeclaration {
-                varType: Type::Int,
+                var_type: Type::Int,
                 name: "a".to_string(),
                 value: None,
             },
