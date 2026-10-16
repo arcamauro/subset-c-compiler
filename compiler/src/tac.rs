@@ -190,7 +190,36 @@ impl TacGenerator {
                 });
                 result
             }
-            _ => todo!("Function calls"),
+            Expr::FunCall { callee, args } => {
+                let mut arguments = Vec::new();
+
+                for arg in args {
+                    let operand = self.lower_expr(arg);
+                    let saved = if matches!(&operand, Operand::Variable(_)) {
+                        let temporary = Operand::Temporary(self.next_temp);
+                        self.next_temp += 1;
+                        self.instructions.push(Instruction::Copy {
+                            destination: temporary.clone(),
+                            source: operand,
+                        });
+                        temporary
+                    } else {
+                        operand
+                    };
+                    arguments.push(saved);
+                }
+
+                let destination = Operand::Temporary(self.next_temp);
+                self.next_temp += 1;
+
+                self.instructions.push(Instruction::Call {
+                    destination: destination.clone(),
+                    callee: callee.clone(),
+                    args: arguments,
+                });
+
+                destination
+            }
         }
     }
 
