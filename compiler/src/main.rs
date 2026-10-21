@@ -1,10 +1,12 @@
+use compiler::ast::Item;
 use compiler::lexer::Lexer;
 use compiler::parser::Parser;
 use compiler::preprocessor::preprocess;
 use compiler::semantic_analyzer::SemanticAnalyzer;
+use compiler::tac::TacGenerator;
 
 fn main() {
-    println!("---- source 1 should display generated tokens, ast and decorated ast ----");
+    println!("---- source 1 should display generated tokens, ast, decorated ast and TAC ----");
     let source = preprocess(
         r#"
         int main() {
@@ -13,7 +15,6 @@ fn main() {
             while (x < 10) {
             x = x + 1;
         }
-
         return x;
 }
         "#,
@@ -24,7 +25,7 @@ fn main() {
     while let Some(token) = lexer.scan_token() {
         tokens.push(token);
     }
-    
+
     println!("Tokens:\n{:#?}\n", tokens);
 
     let mut parser = Parser::new(tokens);
@@ -33,7 +34,23 @@ fn main() {
     println!("AST:\n{:#?}\n", program);
 
     match SemanticAnalyzer::new().analyze(&program) {
-        Ok(annotated_program) => println!("Decorated AST:\n{:#?}", annotated_program),
+        Ok(annotated_program) => {
+            println!("Decorated AST:\n{:#?}", annotated_program);
+            println!("TAC:");
+            for item in &program.items {
+                if let Item::Function(function) = item {
+                    println!("{}:", function.name);
+                    let mut generator = TacGenerator::default();
+                    for statement in &function.body {
+                        generator.lower_stmt(statement);
+                    }
+                    for instruction in &generator.instructions {
+                        println!("  {}", instruction);
+                    }
+                }
+            }
+            println!();
+        }
         Err(errors) => {
             for error in errors {
                 eprintln!("Semantic error: {}", error);
@@ -72,5 +89,4 @@ fn main() {
             }
         }
     }
-
 }

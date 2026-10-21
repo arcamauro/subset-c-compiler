@@ -248,3 +248,162 @@ fn assignment_from_variable_returns_a_saved_value() {
         ]
     );
 }
+
+fn lower_body(source: &str) -> Vec<Instruction> {
+    use compiler::ast::Item;
+    use compiler::lexer::Lexer;
+    use compiler::parser::Parser;
+    let mut lexer = Lexer::new(source);
+    let mut tokens = Vec::new();
+    while let Some(token) = lexer.scan_token() {
+        tokens.push(token);
+    }
+    let program = Parser::new(tokens).parse_program();
+    let Item::Function(function) = &program.items[0] else {
+        panic!()
+    };
+    let mut generator = TacGenerator::default();
+    for statement in &function.body {
+        generator.lower_stmt(statement);
+    }
+    generator.instructions
+}
+
+#[test]
+fn while_rechecks_condition_and_exits_before_following_code() {
+    let code = lower_body("int main() { while (x < 10) { x += 1; } return x; }");
+    assert_eq!(code[0], Instruction::Label(0));
+    assert_eq!(
+        code[1],
+        Instruction::Binary {
+            destination: Operand::Temporary(0),
+            op: OpCode::LessThan,
+            left: Operand::Variable("x".into()),
+            right: Operand::Integer(10),
+        }
+    );
+    assert_eq!(
+        code[2],
+        Instruction::IfFalseGoto {
+            condition: Operand::Temporary(0),
+            label: 1
+        }
+    );
+    assert_eq!(
+        &code[code.len() - 3..],
+        &[
+            Instruction::Goto(0),
+            Instruction::Label(1),
+            Instruction::Return(Some(Operand::Variable("x".into()))),
+        ]
+    );
+}
+
+#[test]
+fn for_continue_runs_update_and_break_exits() {
+    let code =
+        lower_body("int main() { for (int x = 0; x < 3; x += 1) { continue; break; } return 0; }");
+    assert_eq!(code[4], Instruction::Goto(1));
+    assert_eq!(code[5], Instruction::Goto(2));
+    assert_eq!(code[6], Instruction::Label(1));
+    assert_eq!(
+        &code[code.len() - 3..],
+        &[
+            Instruction::Goto(0),
+            Instruction::Label(2),
+            Instruction::Return(Some(Operand::Integer(0))),
+        ]
+    );
+}
+
+#[test]
+fn do_while_continue_targets_condition_after_body() {
+    let code = lower_body("int main() { do { continue; } while (x != 0); return 0; }");
+    assert_eq!(code[0], Instruction::Label(0));
+    assert_eq!(code[1], Instruction::Goto(1));
+    assert_eq!(code[2], Instruction::Label(1));
+    assert_eq!(
+        code[4],
+        Instruction::IfFalseGoto {
+            condition: Operand::Temporary(0),
+            label: 2
+        }
+    );
+    assert_eq!(code[5], Instruction::Goto(0));
+}
+
+#[test]
+fn switch_break_and_continue_use_different_enclosing_targets() {
+    let code = lower_body("int main() { while (1) { switch (x) { case 1: continue; default: break; } break; } return 0; }");
+    assert!(code
+        .windows(2)
+        .any(|pair| pair == [Instruction::Label(3), Instruction::Goto(0)]));
+    assert!(code
+        .windows(2)
+        .any(|pair| pair == [Instruction::Label(4), Instruction::Goto(2)]));
+    assert!(code
+        .windows(2)
+        .any(|pair| pair == [Instruction::Label(2), Instruction::Goto(1)]));
+}
+
+#[test]
+fn switch_cases_fall_through_and_default_is_dispatch_fallback() {
+    let code = lower_body("int main() { switch (x) { default: x = 3; case 1: x = 4; } return x; }");
+    assert_eq!(code[3], Instruction::Goto(1));
+    assert_eq!(
+        &code[4..9],
+        &[
+            Instruction::Label(1),
+            Instruction::Copy {
+                destination: Operand::Variable("x".into()),
+                source: Operand::Integer(3)
+            },
+            Instruction::Label(2),
+            Instruction::Copy {
+                destination: Operand::Variable("x".into()),
+                source: Operand::Integer(4)
+            },
+            Instruction::Label(0),
+        ]
+    );
+}
+
+#[test]
+fn if_else_skips_the_other_branch() {
+    let code = lower_body("int main() { if (x) { return 1; } else { return 2; } }");
+    assert_eq!(
+        code,
+        vec![
+            Instruction::IfFalseGoto {
+                condition: Operand::Variable("x".into()),
+                label: 0
+            },
+            Instruction::Return(Some(Operand::Integer(1))),
+            Instruction::Goto(1),
+            Instruction::Label(0),
+            Instruction::Return(Some(Operand::Integer(2))),
+            Instruction::Label(1),
+        ]
+    );
+}
+
+#[test]
+fn logical_and_skips_rhs_side_effects_when_left_is_false() {
+    let code = lower_body("int main() { if (0 && f()) { return 1; } return 0; }");
+    let Instruction::IfFalseGoto {
+        condition: Operand::Integer(0),
+        label,
+    } = code[1]
+    else {
+        panic!()
+    };
+    let call = code
+        .iter()
+        .position(|i| matches!(i, Instruction::Call { .. }))
+        .unwrap();
+    let end = code
+        .iter()
+        .position(|i| *i == Instruction::Label(label))
+        .unwrap();
+    assert!(call > 1 && call < end);
+}
