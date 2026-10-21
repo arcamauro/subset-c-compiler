@@ -313,4 +313,38 @@ Example errors the analyzer can produce
 - `Function 'foo' expects 2 argument(s), found 1`
 
 ---
-Intermediate Code Generator
+## Intermediate Code Generator
+An intermediate code generator is needed to lower the AST into expressions that can be understood by the code generator.
+I designed a Three-Address-Code (TAC), which structure can be summarized as:
+- temporary variables: denoted by $t_i$, where $i$ is a number $\geq$ zero.
+- labels: piece of code which wraps a loop/condition and what there is after it
+- `goto` keyword to jump between labels
+- ifFalse keyword for conditions (if-else, loops)
+- return keyword
+
+Example: lowering of the AST of the previous example
+```
+TAC:
+main:
+  x = 0
+  L0:
+  t0 = x < 10
+  ifFalse t0 goto L1
+  t1 = x + 1
+  x = t1
+  goto L0
+  L1:
+  t2 = x
+  t3 = t2 != 1
+  ifFalse t3 goto L3
+  goto L4
+  L3:
+  return 0
+  L4:
+  t4 = call printf("Error")
+  L2:
+  return x
+``````
+---
+## Code Generator
+
