@@ -56,7 +56,7 @@ impl Lexer {
         }
     }
 
-    fn advance_char(&mut self) -> Option <char> {
+    fn advance_char(&mut self) -> Option<char> {
         if self.position < self.input.len() {
             let ch = self.input[self.position];
             self.position += 1;
@@ -83,8 +83,8 @@ impl Lexer {
             }
         }
     }
-    
-   pub fn scan_token(&mut self) -> Option<TokenType> {
+
+    pub fn scan_token(&mut self) -> Option<TokenType> {
         let mut buffer = String::new();
         loop {
             match self.state {
@@ -96,35 +96,35 @@ impl Lexer {
                         ';' => {
                             self.advance_char();
                             return Some(TokenType::Semicolon);
-                        },
+                        }
                         ':' => {
                             self.advance_char();
                             return Some(TokenType::Colon);
-                        },
+                        }
                         ',' => {
                             self.advance_char();
                             return Some(TokenType::Comma);
-                        },
+                        }
                         '.' => {
                             self.advance_char();
                             return Some(TokenType::Dot);
-                        },
+                        }
                         '(' => {
                             self.advance_char();
-                            return Some(TokenType::OpenParentheses)
-                        },
+                            return Some(TokenType::OpenParentheses);
+                        }
                         ')' => {
                             self.advance_char();
                             return Some(TokenType::ClosedParentheses);
-                        },
+                        }
                         '{' => {
                             self.advance_char();
                             return Some(TokenType::OpenBracket);
-                        },
+                        }
                         '}' => {
                             self.advance_char();
                             return Some(TokenType::ClosedBracket);
-                        },
+                        }
                         '"' => {
                             self.advance_char();
                             self.state = State::InString;
@@ -217,7 +217,9 @@ impl Lexer {
                                     self.advance_char();
                                     return Some(TokenType::Operator("&&".to_string()));
                                 }
-                                _ => panic!("Syntax error: expected a second '&' after the first one.\n"),
+                                _ => panic!(
+                                    "Syntax error: expected a second '&' after the first one.\n"
+                                ),
                             }
                         }
                         '/' => {
@@ -244,7 +246,7 @@ impl Lexer {
                         }
                         other => panic!("Syntax error: unexpected character '{}'.\n", other),
                     }
-                },
+                }
 
                 State::InIdentifier => match self.peek_char() {
                     Some(character) if character.is_alphanumeric() || character == '_' => {
@@ -299,14 +301,14 @@ impl Lexer {
                 }
 
                 State::InNumber => match self.peek_char() {
-                   Some(character) if character.is_ascii_digit() => {
-                       buffer.push(character);
-                       self.advance_char();
-                   }
-                   _ => {
-                       self.state = State::Start;
-                       return Some(TokenType::IntegerLiteral(buffer.parse().unwrap_or(0)));
-                   }
+                    Some(character) if character.is_ascii_digit() => {
+                        buffer.push(character);
+                        self.advance_char();
+                    }
+                    _ => {
+                        self.state = State::Start;
+                        return Some(TokenType::IntegerLiteral(buffer.parse().unwrap_or(0)));
+                    }
                 },
 
                 State::InBlockComment => match self.advance_char() {
@@ -315,16 +317,17 @@ impl Lexer {
                         self.state = State::Start;
                     }
                     Some(_) => {}
-                    None => panic!("Syntax Error: Unterminated multiline comment. \nAdd */ at the end to terminate it!\n"),
+                    None => panic!(
+                        "Syntax Error: Unterminated multiline comment. \nAdd */ at the end to terminate it!\n"
+                    ),
                 },
 
                 State::InLineComment => match self.advance_char() {
                     Some('\n') | None => self.state = State::Start,
-                    Some(_) => {},
+                    Some(_) => {}
                 },
             }
         }
-
     }
 
     fn keyword_or_identifier(id: String) -> TokenType {
@@ -346,5 +349,4 @@ impl Lexer {
             _ => TokenType::Identifier(id),
         }
     }
-    
 }

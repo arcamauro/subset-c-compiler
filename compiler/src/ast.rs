@@ -13,23 +13,23 @@ pub enum Expr {
     CharLit(char),
     StringLit(String),
     Identifier(String),
-        Assignment {
+    Assignment {
         target: Box<Expr>,
         op: String,
-        value: Box<Expr>
+        value: Box<Expr>,
     },
     BinaryOp {
         left: Box<Expr>,
         op: String,
-        right: Box<Expr>
+        right: Box<Expr>,
     },
     UnaryOp {
-        op:String,
-        expr: Box<Expr>
+        op: String,
+        expr: Box<Expr>,
     },
     FunCall {
         callee: String,
-        args: Vec<Expr>
+        args: Vec<Expr>,
     },
 }
 
@@ -38,7 +38,7 @@ pub enum Stmt {
     VarDeclaration {
         var_type: Type,
         name: String,
-        value: Option<Expr>
+        value: Option<Expr>,
     },
     ReturnStmt(Option<Expr>),
     Expr(Expr),
@@ -50,7 +50,7 @@ pub enum Stmt {
     },
     While {
         condition: Expr,
-        body: Box<Stmt>
+        body: Box<Stmt>,
     },
     DoWhile {
         body: Box<Stmt>,
@@ -76,10 +76,9 @@ pub enum Item {
     FunctionDecl(FunctionDecl),
 }
 
-
 #[derive(Debug, PartialEq, Clone)]
 pub struct Program {
-    pub items: Vec<Item>
+    pub items: Vec<Item>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -93,7 +92,7 @@ pub struct Function {
     pub ret_type: Type,
     pub name: String,
     pub params: Vec<Param>,
-    pub body: Vec<Stmt>
+    pub body: Vec<Stmt>,
 }
 
 #[derive(Debug, PartialEq, Clone)]

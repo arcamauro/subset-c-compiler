@@ -334,16 +334,21 @@ fn do_while_continue_targets_condition_after_body() {
 
 #[test]
 fn switch_break_and_continue_use_different_enclosing_targets() {
-    let code = lower_body("int main() { while (1) { switch (x) { case 1: continue; default: break; } break; } return 0; }");
-    assert!(code
-        .windows(2)
-        .any(|pair| pair == [Instruction::Label(3), Instruction::Goto(0)]));
-    assert!(code
-        .windows(2)
-        .any(|pair| pair == [Instruction::Label(4), Instruction::Goto(2)]));
-    assert!(code
-        .windows(2)
-        .any(|pair| pair == [Instruction::Label(2), Instruction::Goto(1)]));
+    let code = lower_body(
+        "int main() { while (1) { switch (x) { case 1: continue; default: break; } break; } return 0; }",
+    );
+    assert!(
+        code.windows(2)
+            .any(|pair| pair == [Instruction::Label(3), Instruction::Goto(0)])
+    );
+    assert!(
+        code.windows(2)
+            .any(|pair| pair == [Instruction::Label(4), Instruction::Goto(2)])
+    );
+    assert!(
+        code.windows(2)
+            .any(|pair| pair == [Instruction::Label(2), Instruction::Goto(1)])
+    );
 }
 
 #[test]

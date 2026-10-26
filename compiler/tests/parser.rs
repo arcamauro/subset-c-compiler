@@ -138,7 +138,10 @@ fn multiple_functions_in_program() {
             assert_eq!(f.name, "main");
             assert_eq!(
                 f.body,
-                vec![Stmt::ReturnStmt(Some(call("add", vec![int_lit(1), int_lit(2)])))]
+                vec![Stmt::ReturnStmt(Some(call(
+                    "add",
+                    vec![int_lit(1), int_lit(2)]
+                )))]
             );
         }
         other => panic!("expected a function item, found {:?}", other),
@@ -216,7 +219,10 @@ fn function_call_no_args() {
 fn function_call_with_args() {
     assert_eq!(
         parse_body("foo(1, x, 2);"),
-        vec![expr_stmt(call("foo", vec![int_lit(1), ident("x"), int_lit(2)]))]
+        vec![expr_stmt(call(
+            "foo",
+            vec![int_lit(1), ident("x"), int_lit(2)]
+        ))]
     );
 }
 
@@ -238,7 +244,11 @@ fn function_calls_in_binary_expression() {
         vec![expr_stmt(assign(
             ident("a"),
             "=",
-            bin(call("foo", vec![int_lit(1)]), "+", call("bar", vec![int_lit(2)]))
+            bin(
+                call("foo", vec![int_lit(1)]),
+                "+",
+                call("bar", vec![int_lit(2)])
+            )
         ))]
     );
 }
@@ -275,7 +285,10 @@ fn assignment_is_right_associative() {
 fn string_literal_as_call_argument() {
     assert_eq!(
         parse_body(r#"foo("hi");"#),
-        vec![expr_stmt(call("foo", vec![Expr::StringLit("hi".to_string())]))]
+        vec![expr_stmt(call(
+            "foo",
+            vec![Expr::StringLit("hi".to_string())]
+        ))]
     );
 }
 
@@ -373,26 +386,17 @@ fn unary_minus_in_additive_expression() {
 
 #[test]
 fn prefix_increment() {
-    assert_eq!(
-        parse_body("++a;"),
-        vec![expr_stmt(unary("++", ident("a")))]
-    );
+    assert_eq!(parse_body("++a;"), vec![expr_stmt(unary("++", ident("a")))]);
 }
 
 #[test]
 fn postfix_increment() {
-    assert_eq!(
-        parse_body("a++;"),
-        vec![expr_stmt(unary("++", ident("a")))]
-    );
+    assert_eq!(parse_body("a++;"), vec![expr_stmt(unary("++", ident("a")))]);
 }
 
 #[test]
 fn postfix_decrement() {
-    assert_eq!(
-        parse_body("a--;"),
-        vec![expr_stmt(unary("--", ident("a")))]
-    );
+    assert_eq!(parse_body("a--;"), vec![expr_stmt(unary("--", ident("a")))]);
 }
 
 #[test]
@@ -409,7 +413,11 @@ fn if_without_else() {
         parse_body("if (a) { b = 1; }"),
         vec![Stmt::If {
             condition: ident("a"),
-            b_then: Box::new(Stmt::Block(vec![expr_stmt(assign(ident("b"), "=", int_lit(1)))])),
+            b_then: Box::new(Stmt::Block(vec![expr_stmt(assign(
+                ident("b"),
+                "=",
+                int_lit(1)
+            ))])),
             b_else: None,
         }]
     );
@@ -421,7 +429,11 @@ fn if_with_else() {
         parse_body("if (a) { b = 1; } else { b = 2; }"),
         vec![Stmt::If {
             condition: ident("a"),
-            b_then: Box::new(Stmt::Block(vec![expr_stmt(assign(ident("b"), "=", int_lit(1)))])),
+            b_then: Box::new(Stmt::Block(vec![expr_stmt(assign(
+                ident("b"),
+                "=",
+                int_lit(1)
+            ))])),
             b_else: Some(Box::new(Stmt::Block(vec![expr_stmt(assign(
                 ident("b"),
                 "=",

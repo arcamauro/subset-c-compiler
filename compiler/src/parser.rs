@@ -1,13 +1,11 @@
-use crate::lexer::TokenType;
 use crate::ast::{Expr, Function, FunctionDecl, Item, Param, Program, Stmt, SwitchCase, Type};
+use crate::lexer::TokenType;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Parser {
     tokens: Vec<TokenType>,
     position: usize,
 }
-
-
 
 impl Parser {
     pub fn new(tokens: Vec<TokenType>) -> Self {
@@ -382,7 +380,10 @@ impl Parser {
                 }
                 match self.advance() {
                     Some(TokenType::ClosedBracket) => {}
-                    other => panic!("Syntax error: expected '}}' to close block, found {:?}.\n", other),
+                    other => panic!(
+                        "Syntax error: expected '}}' to close block, found {:?}.\n",
+                        other
+                    ),
                 }
                 Stmt::Block(statements)
             }
@@ -402,7 +403,10 @@ impl Parser {
             Some(TokenType::OpenParentheses) => {
                 self.advance();
             }
-            other => panic!("Syntax error: expected '(' after 'if', found {:?}.\n", other),
+            other => panic!(
+                "Syntax error: expected '(' after 'if', found {:?}.\n",
+                other
+            ),
         }
 
         let condition = self.parse_expression();
@@ -446,7 +450,10 @@ impl Parser {
             Some(TokenType::OpenParentheses) => {
                 self.advance();
             }
-            other => panic!("Syntax error: expected '(' after 'while', found {:?}.\n", other),
+            other => panic!(
+                "Syntax error: expected '(' after 'while', found {:?}.\n",
+                other
+            ),
         }
 
         let condition = self.parse_expression();
@@ -490,7 +497,10 @@ impl Parser {
             Some(TokenType::OpenParentheses) => {
                 self.advance();
             }
-            other => panic!("Syntax error: expected '(' after 'while', found {:?}.\n", other),
+            other => panic!(
+                "Syntax error: expected '(' after 'while', found {:?}.\n",
+                other
+            ),
         }
 
         let condition = self.parse_expression();
@@ -530,7 +540,10 @@ impl Parser {
             Some(TokenType::OpenParentheses) => {
                 self.advance();
             }
-            other => panic!("Syntax error: expected '(' after 'for', found {:?}.\n", other),
+            other => panic!(
+                "Syntax error: expected '(' after 'for', found {:?}.\n",
+                other
+            ),
         }
 
         let init = match self.peek().cloned() {
@@ -601,7 +614,10 @@ impl Parser {
             Some(TokenType::OpenParentheses) => {
                 self.advance();
             }
-            other => panic!("Syntax error: expected '(' after 'switch', found {:?}.\n", other),
+            other => panic!(
+                "Syntax error: expected '(' after 'switch', found {:?}.\n",
+                other
+            ),
         }
 
         let cond = self.parse_expression();
@@ -687,7 +703,10 @@ impl Parser {
             Some(TokenType::Semicolon) => {
                 self.advance();
             }
-            other => panic!("Syntax error: expected ';' after expression, found {:?}.\n", other),
+            other => panic!(
+                "Syntax error: expected ';' after expression, found {:?}.\n",
+                other
+            ),
         }
 
         Stmt::Expr(expr)
@@ -711,7 +730,10 @@ impl Parser {
                 self.advance();
                 name
             }
-            other => panic!("Syntax error: expected a function name, found {:?}.\n", other),
+            other => panic!(
+                "Syntax error: expected a function name, found {:?}.\n",
+                other
+            ),
         };
 
         match self.peek().cloned() {
@@ -739,7 +761,11 @@ impl Parser {
         match self.peek().cloned() {
             Some(TokenType::Semicolon) => {
                 self.advance();
-                return Item::FunctionDecl(FunctionDecl { ret_type, name, params });
+                return Item::FunctionDecl(FunctionDecl {
+                    ret_type,
+                    name,
+                    params,
+                });
             }
             Some(TokenType::OpenBracket) => {
                 self.advance();
@@ -782,7 +808,10 @@ impl Parser {
                 self.advance();
                 name
             }
-            other => panic!("Syntax error: expected a parameter name, found {:?}.\n", other),
+            other => panic!(
+                "Syntax error: expected a parameter name, found {:?}.\n",
+                other
+            ),
         };
 
         Param { param_type, name }

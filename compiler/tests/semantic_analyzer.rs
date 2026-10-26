@@ -220,10 +220,7 @@ fn break_inside_while_loop_is_ok() {
 
 #[test]
 fn continue_inside_for_loop_is_ok() {
-    assert!(
-        analyze("int main() { for (int i = 0; i < 10; i++) { continue; } return 0; }")
-            .is_ok()
-    );
+    assert!(analyze("int main() { for (int i = 0; i < 10; i++) { continue; } return 0; }").is_ok());
 }
 
 #[test]

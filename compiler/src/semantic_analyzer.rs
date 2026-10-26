@@ -1,8 +1,8 @@
-use std::collections::HashMap;
 use crate::ast::{
-    DecoratedFunction, DecoratedItem, DecoratedProgram, DecoratedStmt,
-    Program, Item, Function, Param, Type, Expr, Stmt,
+    DecoratedFunction, DecoratedItem, DecoratedProgram, DecoratedStmt, Expr, Function, Item, Param,
+    Program, Stmt, Type,
 };
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Clone)]
 struct Symbol {
@@ -64,7 +64,8 @@ impl SemanticAnalyzer {
     fn declare(&mut self, name: String, symbol: Symbol) {
         let current = self.scopes.last_mut().unwrap();
         if current.contains_key(&name) {
-            self.errors.push(format!("Redeclaration of '{}' in same scope", name));
+            self.errors
+                .push(format!("Redeclaration of '{}' in same scope", name));
         } else {
             current.insert(name, symbol);
         }
@@ -139,12 +140,17 @@ impl SemanticAnalyzer {
             })
             .collect();
 
-        Ok(DecoratedProgram { items, symbol_table })
+        Ok(DecoratedProgram {
+            items,
+            symbol_table,
+        })
     }
 
     fn decorate_stmt(&self, stmt: &Stmt) -> DecoratedStmt {
         let inferred_type = match stmt {
-            Stmt::VarDeclaration { var_type, value, .. } => {
+            Stmt::VarDeclaration {
+                var_type, value, ..
+            } => {
                 if let Some(expr) = value {
                     let expr_ty = self.infer_expr_type(expr);
                     if expr_ty != *var_type {
@@ -160,7 +166,9 @@ impl SemanticAnalyzer {
             Stmt::ReturnStmt(None) => None,
             Stmt::Expr(expr) => Some(self.infer_expr_type(expr)),
             Stmt::Block(stmts) => {
-                let last = stmts.last().and_then(|s| self.decorate_stmt(s).inferred_type);
+                let last = stmts
+                    .last()
+                    .and_then(|s| self.decorate_stmt(s).inferred_type);
                 last.or_else(|| None)
             }
             Stmt::If { condition, .. } => Some(self.infer_expr_type(condition)),
@@ -194,7 +202,11 @@ impl SemanticAnalyzer {
             Expr::BinaryOp { left, right, .. } => {
                 let left_ty = self.infer_expr_type(left);
                 let right_ty = self.infer_expr_type(right);
-                if left_ty == right_ty { left_ty } else { Type::Int }
+                if left_ty == right_ty {
+                    left_ty
+                } else {
+                    Type::Int
+                }
             }
             Expr::UnaryOp { expr, .. } => self.infer_expr_type(expr),
             Expr::FunCall { callee, .. } => match self.lookup(callee) {
@@ -260,7 +272,11 @@ impl SemanticAnalyzer {
 
     fn check_stmt(&mut self, stmt: &Stmt) {
         match stmt {
-            Stmt::VarDeclaration { var_type, name, value } => {
+            Stmt::VarDeclaration {
+                var_type,
+                name,
+                value,
+            } => {
                 if let Some(expr) = value {
                     self.check_expr(expr);
                 }
@@ -303,7 +319,11 @@ impl SemanticAnalyzer {
                 }
                 self.pop_scope();
             }
-            Stmt::If { condition, b_then, b_else } => {
+            Stmt::If {
+                condition,
+                b_then,
+                b_else,
+            } => {
                 self.check_expr(condition);
                 self.check_stmt(b_then);
                 if let Some(b_else) = b_else {
@@ -322,7 +342,12 @@ impl SemanticAnalyzer {
                 self.loop_depth -= 1;
                 self.check_expr(condition);
             }
-            Stmt::For { init, condition, update, body } => {
+            Stmt::For {
+                init,
+                condition,
+                update,
+                body,
+            } => {
                 self.push_scope();
                 if let Some(init) = init {
                     self.check_stmt(init);
@@ -374,7 +399,11 @@ impl SemanticAnalyzer {
                     Type::Int
                 }
             },
-            Expr::Assignment { target, op: _, value } => {
+            Expr::Assignment {
+                target,
+                op: _,
+                value,
+            } => {
                 if !matches!(target.as_ref(), Expr::Identifier(_)) {
                     self.error("Left-hand side of assignment must be a variable".to_string());
                 }
@@ -402,7 +431,11 @@ impl SemanticAnalyzer {
             Expr::UnaryOp { op: _, expr } => self.check_expr(expr),
             Expr::FunCall { callee, args } => match self.lookup(callee).cloned() {
                 Some(Symbol {
-                    kind: Kind::Function { params, return_value },
+                    kind:
+                        Kind::Function {
+                            params,
+                            return_value,
+                        },
                     ..
                 }) => {
                     if params.len() != args.len() {
