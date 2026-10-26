@@ -8,4 +8,4 @@ This project is currently under active development. You can check the [`dev`](ht
 - [x] **AST Generation**: Full AST modeling using Rust algebraic data types (`enum`) and smart pointers (`Box`)
 - [x] **Semantic Analysis**: Type checking and symbol table management
 - [x] **Intermediate code**: to lower AST constructs into three-address code (TAC).
-- [ ] **Code Generation**: Target code emission for RISC-V architecture (_in progress_)
+- [ ] **Code Generation**: Target code emission for RISC-V architecture (_currently postponing_)
